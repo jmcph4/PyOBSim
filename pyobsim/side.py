@@ -1,11 +1,11 @@
-import order
+from . import order
 
 class NoPriceError(Exception):
     pass
 
 class Side(object):
     def __init__(self, stype):
-        if str(stype) != order.BID_STR and str(stype) != order.ASK_STR:
+        if str(stype) != "BID" and str(stype) != "ASK":
             raise ValueError()
 
         self._stype = str(stype)
@@ -27,8 +27,23 @@ class Side(object):
 
     @property
     def best(self):
-        return self.prices[0]
+        if len(self.prices) > 0:
+            return self.prices[0]
+        else:
+            return 0
 
+    @property
+    def volume(self):
+        vol = 0
+        
+        for price in self.prices:
+            level = self.get(price)
+
+            for order in level:
+                vol += order.qty
+
+        return vol
+    
     def get(self, price):
         if price not in self.prices:
             raise NoPriceError()
@@ -74,9 +89,9 @@ class Side(object):
         self._data[price] = []
 
     def _sort_prices(self):
-        if self.stype == order.BID_STR:
+        if self.stype == "BID":
             self.prices.sort(reverse=True)
-        elif self.stype == order.ASK_STR:
+        elif self.stype == "ASK":
             self.prices.sort()
 
     def __str__(self):

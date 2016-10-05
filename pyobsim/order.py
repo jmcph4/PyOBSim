@@ -1,5 +1,3 @@
-BID_STR = "BID"
-ASK_STR = "ASK"
 CENTS_PER_DOLLAR = 100
 
 class Order(object):
@@ -7,7 +5,7 @@ class Order(object):
         if int(oid) < 0:
             raise ValueError()
 
-        if str(otype) != BID_STR and str(otype) != ASK_STR:
+        if str(otype) != "BID" and str(otype) != "ASK":
             raise ValueError()
 
         if int(price * CENTS_PER_DOLLAR) <= 0:
