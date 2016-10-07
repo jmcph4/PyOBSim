@@ -221,15 +221,21 @@ class Book(object):
 
         for price in self.asks.prices:
             level = self.asks.get(price)
+            level_qty = 0
 
             for order in level:
-                s += "${0}\t\t{1}\t|\n".format(order.price, order.qty)
+                level_qty += order.qty
+
+            s += "${0}\t\t{1}\t|\n".format(price, level_qty)
 
         for price in self.bids.prices:
             level = self.bids.get(price)
+            level_qty = 0
 
             for order in level:
-                s += "\t\t\t|${0}\t\t{1}\n".format(order.price, order.qty)
+                level_qty += order.qty
+
+            s += "\t\t\t|${0}\t\t{1}\n".format(price, level_qty)
 
         s += "-" * 80 + "\n"
         s += "\t\t\tPrice\t\tQuantity\n"
