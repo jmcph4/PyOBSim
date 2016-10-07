@@ -124,18 +124,18 @@ class Book(object):
     def _payout(self, side, order, amt=None):
         if side.stype == "BID":
             if amt:
-                self.participants[order.owner]["balance"] -= order.price * amt
-                self.participants[order.owner]["volume"] += amt
-            else:
-                self.participants[order.owner]["balance"] -= order.price * order.qty
-                self.participants[order.owner]["volume"] += order.qty
-        elif side.stype == "ASK":
-            if amt:
                 self.participants[order.owner]["balance"] += order.price * amt
                 self.participants[order.owner]["volume"] -= amt
             else:
                 self.participants[order.owner]["balance"] += order.price * order.qty
                 self.participants[order.owner]["volume"] -= order.qty
+        elif side.stype == "ASK":
+            if amt:
+                self.participants[order.owner]["balance"] -= order.price * amt
+                self.participants[order.owner]["volume"] += amt
+            else:
+                self.participants[order.owner]["balance"] -= order.price * order.qty
+                self.participants[order.owner]["volume"] += order.qty
 
     def add(self, order):
         if order.otype == "BID":
@@ -200,12 +200,6 @@ class Book(object):
     def cancel(self, oid):
         self.bids.remove(oid)
         self.asks.remove(oid)
-
-    def add_participant(self, participant):
-        if len(tuple(participant)) == 2:
-            self.participants[tuple(participant)[0]] = tuple(participant)[1]
-        else:
-            raise ValueError()
 
     def __str__(self):
         return "{0} with depth ({1}, {2})".format(self.name,
