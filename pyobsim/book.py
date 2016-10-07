@@ -7,6 +7,9 @@ class InsufficientVolume(Exception):
 class PriceOutOfRange(Exception):
     pass
 
+class InsufficientFunds(Exception):
+    pass
+
 class Book(object):
     def __init__(self, name, participants):
         self._name = str(name)
@@ -56,6 +59,13 @@ class Book(object):
     @property
     def LTP(self):
         return self._LTP
+
+    def add_participant(self, name, balance, volume):
+        if int(balance) < 0 or int(volume) < 0:
+            raise ValueError()
+        
+        self.participants[name] = {"balance": int(balance),
+                                   "volume": int(volume)}
 
     def crossed(self):
         if self.bids.best >= self.asks.best:
@@ -113,46 +123,61 @@ class Book(object):
 
     def _payout(self, side, order, amt=None):
         if side.stype == "BID":
-            k = -1
+            if amt:
+                self.participants[order.owner]["balance"] -= order.price * amt
+                self.participants[order.owner]["volume"] += amt
+            else:
+                self.participants[order.owner]["balance"] -= order.price * order.qty
+                self.participants[order.owner]["volume"] += order.qty
         elif side.stype == "ASK":
-            k = 1
-
-        if amt:
-            self.participants[order.owner] += k * order.price * amt
-        else:
-            self.participants[order.owner] += k * order.price * order.qty
+            if amt:
+                self.participants[order.owner]["balance"] += order.price * amt
+                self.participants[order.owner]["volume"] -= amt
+            else:
+                self.participants[order.owner]["balance"] += order.price * order.qty
+                self.participants[order.owner]["volume"] -= order.qty
 
     def add(self, order):
         if order.otype == "BID":
-            try:
-                self._match(self.asks, order)
-            except InsufficientVolume:
-                oid = self.volume[0] + self.volume[1] + 1
-                order.oid = oid
+            if order.price * order.qty <= self.participants[order.owner]["balance"]:
+                try:
+                    self._match(self.asks, order)
+                except InsufficientVolume:
+                    oid = self.volume[0] + self.volume[1] + 1
+                    order.oid = oid
                 
-                self.bids.put(order)
-            except PriceOutOfRange:
-                oid = self.volume[0] + self.volume[1] + 1
-                order.oid = oid
+                    self.bids.put(order)
+
+                    return oid
+                except PriceOutOfRange:
+                    oid = self.volume[0] + self.volume[1] + 1
+                    order.oid = oid
                 
-                self.bids.put(order)
+                    self.bids.put(order)
+
+                    return oid
+            else:
+                raise InsufficientFunds()
         elif order.otype == "ASK":
-            try:
-                self._match(self.bids, order)
-            except InsufficientVolume:
-                oid = self.volume[0] + self.volume[1] + 1
-                order.oid = oid
+            if order.qty <= self.participants[order.owner]["volume"]:
+                try:
+                    self._match(self.bids, order)
+                except InsufficientVolume:
+                    oid = self.volume[0] + self.volume[1] + 1
+                    order.oid = oid
                 
-                self.asks.put(order)
+                    self.asks.put(order)
                 
-                return oid
-            except PriceOutOfRange:
-                oid = self.volume[0] + self.volume[1] + 1
-                order.oid = oid
+                    return oid
+                except PriceOutOfRange:
+                    oid = self.volume[0] + self.volume[1] + 1
+                    order.oid = oid
                 
-                self.asks.put(order)
+                    self.asks.put(order)
                 
-                return oid
+                    return oid
+            else:
+                raise InsufficientFunds()
 
     def execute(self, order, amt=None):
         if amt:
