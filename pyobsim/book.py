@@ -78,43 +78,32 @@ class Book(object):
         if good_price:
             if order.qty <= side.volume:
                 # we can match
-                if order.price in side.prices:
-                    p = order.price
-                else:
-                    for price in side.prices:
-                        if side.stype == "BID":
-                            if price > order.price:
-                                p = price
-                            else:
-                                raise PriceOutOfRange()
-                        elif side.stype == "ASK":
-                            if price < order.price:
-                                p = price
-                            else:
-                                raise PriceOutOfRange()
+                for price in side.prices:
+                    p = price
+                    
+                    matched = False
+            
+                    while not matched:
+                        level = side.get(p)
 
-                matched = False
-                
-                while not matched:
-                    level = side.get(p)
+                        for o in level:
+                            if order.qty < o.qty:
+                                self.execute(order)
+                                self.execute(o, amt=order.qty)
+                                matched = True
+                                break
+                            elif order.qty == o.qty:
+                                self.execute(order)
+                                self.execute(o)
+                                matched = True
+                                break
+                            else:
+                                self.execute(order, amt=o.qty)
+                                self.execute(o)
 
-                    for o in level:
-                        if order.qty < o.qty:
-                            self.execute(order)
-                            self.execute(o, amt=order.qty)
-                            matched = True
-                            break
-                        elif order.qty == o.qty:
-                            self.execute(order)
-                            self.execute(o)
-                            matched = True
-                            break
-                        else:
-                            self.execute(order, amt=o.qty)
-                            self.execute(o)
-                    if not matched:
-                        # if order still not fully matched
-                        p = side.prices[side.prices.index(p)+1]
+                    # if we've matched, break out of price loop
+                    if matched:
+                        break
             else:
                 # insufficient volume
                 raise InsufficientVolume()
