@@ -8,7 +8,7 @@ class Order(object):
         if str(otype) != "BID" and str(otype) != "ASK":
             raise ValueError()
 
-        if int(price * CENTS_PER_DOLLAR) <= 0:
+        if round(float(price), 2) <= 0:
             raise ValueError()
 
         if int(qty) <= 0:
@@ -18,7 +18,7 @@ class Order(object):
         self._owner = str(owner)
         self._ticker = str(ticker)
         self._otype = str(otype)
-        self._price = int(price * CENTS_PER_DOLLAR)
+        self._price = round(float(price), 2)
         self._qty = int(qty)
 
     @property
@@ -51,14 +51,14 @@ class Order(object):
 
     @property
     def price(self):
-        return round(float(self._price / CENTS_PER_DOLLAR), 2)
+        return round(self._price, 2)
 
     @price.setter
     def price(self, price):
-        if int(price * CENTS_PER_DOLLAR) <= 0:
+        if round(float(price)) <= 0:
             raise ValueError()
 
-        self._price = int(price * CENTS_PER_DOLLAR)
+        self._price = round(float(price))
 
     @property
     def qty(self):

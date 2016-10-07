@@ -138,8 +138,14 @@ class Book(object):
             try:
                 self._match(self.asks, order)
             except InsufficientVolume:
+                oid = self.volume[0] + self.volume[1] + 1
+                order.oid = oid
+                
                 self.bids.put(order)
             except PriceOutOfRange:
+                oid = self.volume[0] + self.volume[1] + 1
+                order.oid = oid
+                
                 self.bids.put(order)
         elif order.otype == "ASK":
             try:
@@ -147,12 +153,14 @@ class Book(object):
             except InsufficientVolume:
                 oid = self.volume[0] + self.volume[1] + 1
                 order.oid = oid
+                
                 self.asks.put(order)
                 
                 return oid
             except PriceOutOfRange:
                 oid = self.volume[0] + self.volume[1] + 1
                 order.oid = oid
+                
                 self.asks.put(order)
                 
                 return oid
@@ -184,6 +192,11 @@ class Book(object):
             self.participants[tuple(participant)[0]] = tuple(participant)[1]
         else:
             raise ValueError()
+
+    def __str__(self):
+        return "{0} with depth ({1}, {2})".format(self.name,
+                                                       self.depth[0],
+                                                       self.depth[1])
 
     def __repr__(self):
         s = "Book for " + self.name + "\n"
