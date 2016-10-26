@@ -73,28 +73,29 @@ class Book(object):
         else:
             return False
 
-    def _match(self, side, order):
-        if side.stype == "BID":
-            if order.price <= side.best:
+    def _match(self, counter_side, order):
+        if counter_side.stype == "BID":
+            if order.price <= counter_side.best:
                 good_price = True
             else:
                 good_price = False
-        elif side.stype == "ASK":
-            if order.price >= side.best:
+        elif counter_side.stype == "ASK":
+            if order.price >= counter_side.best:
                 good_price = True
             else:
                 good_price = False
             
         if good_price:
-            if order.qty <= side.volume:
+            if order.qty <= counter_side.volume:
                 # we can match
-                for price in side.prices:
-                    p = price
-                    
+                for price in counter_side.prices:
                     matched = False
             
                     while not matched:
-                        level = side.get(p)
+                        try:
+                            level = counter_side.get(price)
+                        except side.NoPriceError:
+                            break
 
                         for o in level:
                             if order.qty < o.qty:
@@ -114,6 +115,10 @@ class Book(object):
                     # if we've matched, break out of price loop
                     if matched:
                         break
+
+                    # exhausted this price level
+                    if len(level) == 0:
+                        break
             else:
                 # insufficient volume
                 raise InsufficientVolume()
@@ -124,18 +129,18 @@ class Book(object):
     def _payout(self, side, order, amt=None):
         if side.stype == "BID":
             if amt:
-                self.participants[order.owner]["balance"] += order.price * amt
-                self.participants[order.owner]["volume"] -= amt
-            else:
-                self.participants[order.owner]["balance"] += order.price * order.qty
-                self.participants[order.owner]["volume"] -= order.qty
-        elif side.stype == "ASK":
-            if amt:
                 self.participants[order.owner]["balance"] -= order.price * amt
                 self.participants[order.owner]["volume"] += amt
             else:
                 self.participants[order.owner]["balance"] -= order.price * order.qty
                 self.participants[order.owner]["volume"] += order.qty
+        elif side.stype == "ASK":
+            if amt:
+                self.participants[order.owner]["balance"] += order.price * amt
+                self.participants[order.owner]["volume"] -= amt
+            else:
+                self.participants[order.owner]["balance"] += order.price * order.qty
+                self.participants[order.owner]["volume"] -= order.qty
 
     def add(self, order):
         if order.otype == "BID":
