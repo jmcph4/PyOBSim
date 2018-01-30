@@ -1,5 +1,5 @@
-from . import order
-from . import side
+from .order import Order
+from .side import Side
 
 class InsufficientVolume(Exception):
     pass
@@ -15,8 +15,8 @@ class Book(object):
         self._name = str(name)
         self._participants = dict(participants)
 
-        self._bids = side.Side("BID")
-        self._asks = side.Side("ASK")
+        self._bids = Side("BID")
+        self._asks = Side("ASK")
 
         self._LTP = 0
 

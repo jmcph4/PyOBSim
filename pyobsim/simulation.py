@@ -1,8 +1,8 @@
 import csv
 
-from . import order
-from . import side
-from . import book
+from .order import Order
+from .side import Side
+from .book import Book
 
 class Simulation(object):
     def __init__(self, name, orders, participants):
@@ -19,7 +19,7 @@ class Simulation(object):
                 tickers.append(order.ticker)
 
         for ticker in tickers:
-            self.add_book(book.Book(ticker, self.participants))
+            self.add_book(Book(ticker, self.participants))
 
     @property
     def name(self):
@@ -61,10 +61,10 @@ class Simulation(object):
 
             for row in csv_orders:
                 if len(row) == 6:
-                    self.add_order(order.Order(row[0], row[1], row[2], row[3], row[4], row[5]))
+                    self.add_order(Order(row[0], row[1], row[2], row[3], row[4], row[5]))
 
         for o in self.orders:
-            self.add_book(book.Book(o.ticker, self.participants))
+            self.add_book(Book(o.ticker, self.participants))
 
     def run(self, steps=None):
         if steps:

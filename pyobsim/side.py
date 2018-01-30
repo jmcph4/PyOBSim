@@ -1,4 +1,4 @@
-from . import order
+from .order import Order
 
 class NoPriceError(Exception):
     pass
