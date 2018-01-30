@@ -1,8 +1,12 @@
 class Participant(object):
     def __init__(self, name, balance, volume):
-        self._name = name
-        self._balance = balance
-        self._volume = volume
+        self._name = str(name)
+
+        if balance <0 or volume < 0:
+            raise ValueError()
+        
+        self._balance = float(balance)
+        self._volume = int(volume)
 
     @property
     def name(self):
@@ -16,7 +20,8 @@ class Participant(object):
     def balance(self):
         return self._balance
 
-    @balance.setter(self, balance):
+    @balance.setter
+    def balance(self, balance):
         self._balance = balance
 
     @property
@@ -26,3 +31,8 @@ class Participant(object):
     @volume.setter
     def volume(self, volume):
         self._volume = volume
+
+    def __repr__(self):
+        s = self.name + ": $" + str(self.balance) + " with " + str(self.volume) + " units" 
+
+        return s

@@ -1,11 +1,17 @@
+from copy import deepcopy
+
 from .order import Order
 from .side import Side
-from .errors import InsufficientFundsError, InsufficientVolumeError, PriceOutOfRangeError, NoPriceError
+from .errors import InsufficientFundsError, InsufficientVolumeError, PriceOutOfRangeError, NoPriceError, ParticipantAlreadyExistsError
 
 class Book(object):
     def __init__(self, name, participants):
         self._name = str(name)
-        self._participants = dict(participants)
+        self._participants = {}
+
+        # build participants dictionary from list
+        for participant in participants:
+            self._participants[participant.name] = participant
 
         self._bids = Side("BID")
         self._asks = Side("ASK")
@@ -22,7 +28,7 @@ class Book(object):
 
     @property
     def participants(self):
-        return self._participants
+        return deepcopy(self._participants)
 
     @property
     def bids(self):
@@ -52,12 +58,11 @@ class Book(object):
     def LTP(self):
         return self._LTP
 
-    def add_participant(self, name, balance, volume):
-        if int(balance) < 0 or int(volume) < 0:
-            raise ValueError()
-        
-        self.participants[name] = {"balance": int(balance),
-                                   "volume": int(volume)}
+    def add_participant(self, participant):
+        if participant.name in self._participants.keys():
+            raise ParticipantAlreadyExistsError()
+
+        self.participants[participant.name] = participant
 
     def crossed(self):
         if self.bids.best >= self.asks.best:
@@ -121,22 +126,22 @@ class Book(object):
     def _payout(self, side, order, amt=None):
         if side.stype == "BID":
             if amt:
-                self.participants[order.owner]["balance"] -= order.price * amt
-                self.participants[order.owner]["volume"] += amt
+                self.participants[order.owner].balance -= order.price * amt
+                self.participants[order.owner].volume += amt
             else:
-                self.participants[order.owner]["balance"] -= order.price * order.qty
-                self.participants[order.owner]["volume"] += order.qty
+                self.participants[order.owner].balance -= order.price * order.qty
+                self.participants[order.owner].volume += order.qty
         elif side.stype == "ASK":
             if amt:
-                self.participants[order.owner]["balance"] += order.price * amt
-                self.participants[order.owner]["volume"] -= amt
+                self.participants[order.owner].balance += order.price * amt
+                self.participants[order.owner].volume -= amt
             else:
-                self.participants[order.owner]["balance"] += order.price * order.qty
-                self.participants[order.owner]["volume"] -= order.qty
+                self.participants[order.owner].balance += order.price * order.qty
+                self.participants[order.owner].volume -= order.qty
 
     def add(self, order):
         if order.otype == "BID":
-            if order.price * order.qty <= self.participants[order.owner]["balance"]:
+            if order.price * order.qty <= self.participants[order.owner].balance:
                 try:
                     self._match(self.asks, order)
                 except InsufficientVolumeError:
@@ -156,7 +161,7 @@ class Book(object):
             else:
                 raise InsufficientFundsError()
         elif order.otype == "ASK":
-            if order.qty <= self.participants[order.owner]["volume"]:
+            if order.qty <= self.participants[order.owner].volume:
                 try:
                     self._match(self.bids, order)
                 except InsufficientVolumeError:

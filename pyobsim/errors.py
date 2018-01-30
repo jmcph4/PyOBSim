@@ -9,3 +9,6 @@ class InsufficientVolumeError(Exception):
 
 class NoPriceError(Exception):
     pass
+
+class ParticipantAlreadyExistsError(Exception):
+    pass
