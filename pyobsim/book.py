@@ -1,14 +1,6 @@
 from .order import Order
 from .side import Side
-
-class InsufficientVolume(Exception):
-    pass
-
-class PriceOutOfRange(Exception):
-    pass
-
-class InsufficientFunds(Exception):
-    pass
+from .errors import InsufficientFundsError, InsufficientVolumeError, PriceOutOfRangeError, NoPriceError
 
 class Book(object):
     def __init__(self, name, participants):
@@ -94,7 +86,7 @@ class Book(object):
                     while not matched:
                         try:
                             level = counter_side.get(price)
-                        except side.NoPriceError:
+                        except NoPriceError:
                             break
 
                         for o in level:
@@ -121,10 +113,10 @@ class Book(object):
                         break
             else:
                 # insufficient volume
-                raise InsufficientVolume()
+                raise InsufficientVolumeError()
         else:
             # price out of range
-            raise PriceOutOfRange()
+            raise PriceOutOfRangeError()
 
     def _payout(self, side, order, amt=None):
         if side.stype == "BID":
@@ -147,14 +139,14 @@ class Book(object):
             if order.price * order.qty <= self.participants[order.owner]["balance"]:
                 try:
                     self._match(self.asks, order)
-                except InsufficientVolume:
+                except InsufficientVolumeError:
                     oid = self.volume[0] + self.volume[1] + 1
                     order.oid = oid
                 
                     self.bids.put(order)
 
                     return oid
-                except PriceOutOfRange:
+                except PriceOutOfRangeError:
                     oid = self.volume[0] + self.volume[1] + 1
                     order.oid = oid
                 
@@ -162,19 +154,19 @@ class Book(object):
 
                     return oid
             else:
-                raise InsufficientFunds()
+                raise InsufficientFundsError()
         elif order.otype == "ASK":
             if order.qty <= self.participants[order.owner]["volume"]:
                 try:
                     self._match(self.bids, order)
-                except InsufficientVolume:
+                except InsufficientVolumeError:
                     oid = self.volume[0] + self.volume[1] + 1
                     order.oid = oid
                 
                     self.asks.put(order)
                 
                     return oid
-                except PriceOutOfRange:
+                except PriceOutOfRangeError:
                     oid = self.volume[0] + self.volume[1] + 1
                     order.oid = oid
                 
@@ -182,7 +174,7 @@ class Book(object):
                 
                     return oid
             else:
-                raise InsufficientFunds()
+                raise InsufficientFundsError()
 
     def execute(self, order, amt=None):
         if amt:

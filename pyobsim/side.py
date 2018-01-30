@@ -1,7 +1,5 @@
 from .order import Order
-
-class NoPriceError(Exception):
-    pass
+from .errors import NoPriceError
 
 class Side(object):
     def __init__(self, stype):
