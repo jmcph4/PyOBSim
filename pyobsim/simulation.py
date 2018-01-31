@@ -1,14 +1,17 @@
 import csv
 
+from copy import deepcopy
+
 from .order import Order
 from .side import Side
 from .book import Book
+from .participant import Participant
 
 class Simulation(object):
     def __init__(self, name, orders, participants):
         self._name = str(name)
         self._orders = list(orders)
-        self._participants = dict(participants)
+        self._participants = deepcopy(participants)
 
         self._books = {}
 
@@ -87,9 +90,9 @@ class Simulation(object):
         s = "Simulation \n\t" + self.name + "\n---\n"
         s += "Statement of Accounts\n"
 
-        for k, v in self.participants.items():
-            s += "\t" + k + ": $" + str(v["balance"]) + "\n\t\t" + str(v["volume"]) + " units\n"
-
+        for participant in self._participants:
+            s += str(participant)
+            
         s += "---\n"
         s += "Market as at present\n"
 
