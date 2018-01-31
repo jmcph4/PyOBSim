@@ -1,34 +1,47 @@
-# PyOBSim - the Python Order Book Simulator#
+# PyOBSim - the Python Order Book Simulator #
 ---
 
 PyOBSim is a Python module facilitating market simulation by implementing an order book and other utilities. PyOBSim aims to make testing of trading algorithms clean and simple.
 
-To get started:
+Running simulations is straightforward: simply provide an order flow and fire away:
 
-    $ git clone https://github.com/jmcph4/pyobsim.git
-    $ cd pyobsim
-    $ vi test.py
-    $ cat test.py
     from pyobsim import *
+    
+    # build our participants
+    alice = participant.Participant("Alice", 100, 0)    # $100, no units
+    bob = participant.Participant("Bob", 0, 120)        # $0, 120 units
+    
+    sim = simulation.Simulation("My Simulation", [], [alice, bob])
+    sim.load("order_flow.csv") # load our order flow from CSV file
+    sim.run()
+    print(sim)
 
-    b = book.Book("Mangoes", {"Alice": {"balance": 150,
-                                "volume": 0},
-                          "Bob": {"balance": 0,
-                                  "volume": 100}})
+This gives us our summary:
 
-    init_bid = b.add(order.Order(0, "Alice", "Mangoes", "BID", 1.00, 100))
-    print(repr(b))
+    Simulation 
+	    My Simulation
+    ---
+    Statement of Accounts
+    Alice: $100.0 with 0 units
+    Bob: $0.0 with 120 units
+    ---
+    Market as at present
+	     'GOOG'
 
-    b.add(order.Order(0, "Bob", "Mangoes", "ASK", 1.50, 100))
-    print(repr(b))
+If we want to inspect the book for `GOOG`:
 
-    b.cancel(init_bid) #cancel first bid (at $1.00)
-    print(repr(b))
+    print(sim.books["GOOG"])
 
-    # match Bob's ask price
-    b.add(order.Order(0, "Alice", "Mangoes", "BID", 1.50, 100))
-    print(repr(b))
+We get:
 
-    print(b.LTP) # last traded price for mangoes
-    print(b.participants) # market participants' accounts
-
+    Book for GOOG
+    Spread is $0.5
+    ===
+    Ask
+    Price		Quantity
+    --------------------------------------------------------------------------------
+    $1.0		100	|
+    			    |$0.5		10
+    --------------------------------------------------------------------------------
+    			     Price		Quantity
+    			     Bid    
