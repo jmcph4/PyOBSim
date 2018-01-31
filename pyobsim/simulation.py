@@ -91,7 +91,7 @@ class Simulation(object):
         s += "Statement of Accounts\n"
 
         for participant in self._participants:
-            s += str(participant)
+            s += str(participant) + "\n"
             
         s += "---\n"
         s += "Market as at present\n"
