@@ -2,16 +2,23 @@ from copy import deepcopy
 
 from .order import Order
 from .side import Side
-from .errors import InsufficientFundsError, InsufficientVolumeError, PriceOutOfRangeError, NoPriceError, ParticipantAlreadyExistsError
+from .errors import InsufficientFundsError, InsufficientVolumeError, \
+    PriceOutOfRangeError, NoPriceError, ParticipantAlreadyExistsError
+
 
 class Book(object):
-    def __init__(self, name, participants):
+    def __init__(self, name, participants, params=None):
         self.__name = str(name)
         self.__participants = {}
 
         # build participants dictionary from list
         for participant in participants:
             self.__participants[participant.name] = participant
+
+        if params is not None:
+            self.__params = deepcopy(params)
+        else:
+            self.__params = {}
 
         self.__bids = Side("BID")
         self.__asks = Side("ASK")
@@ -57,6 +64,18 @@ class Book(object):
     @property
     def LTP(self):
         return self.__LTP
+
+    def set_param(self, name, value):
+        if name not in self.__params.keys():
+            raise NoSuchParameterError()
+
+        self.__params[name] = value
+
+    def get_param(self, name):
+        if name not in self.__params.keys():
+            raise NoSuchParameterError()
+
+        return self.__params[name]
 
     def add_participant(self, participant):
         if participant.name in self.__participants.keys():

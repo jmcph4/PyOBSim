@@ -12,3 +12,6 @@ class NoPriceError(Exception):
 
 class ParticipantAlreadyExistsError(Exception):
     pass
+
+class NoSuchParameterError(Exception):
+    pass
