@@ -2,22 +2,22 @@ from .order import Order
 from .errors import NoPriceError
 
 class Side(object):
-    def __init__(self, stype):
-        if str(stype) != "BID" and str(stype) != "ASK":
+    def __init__(self, type):
+        if str(type) != "BID" and str(type) != "ASK":
             raise ValueError()
 
-        self._stype = str(stype)
+        self.__type = str(type)
 
-        self._data = {}
-        self._prices = []
+        self.__data = {}
+        self.__prices = []
 
     @property
-    def stype(self):
-        return self._stype
+    def type(self):
+        return self.__type
 
     @property
     def prices(self):
-        return self._prices
+        return self.__prices
 
     @property
     def depth(self):
@@ -46,28 +46,28 @@ class Side(object):
         if price not in self.prices:
             raise NoPriceError()
 
-        return self._data[price]
+        return self.__data[price]
 
     def put(self, order):
         # add price level if it doesn't already exist
         if order.price not in self.prices:
-            self._add_price(order.price)
+            self.__add_price(order.price)
 
-        self._data[order.price].append(order)
+        self.__data[order.price].append(order)
 
-    def remove(self, oid):
+    def remove(self, id):
         for price in self.prices:
             level = self.get(price)
 
-            # traverse price level, searching for order with the required oid
+            # traverse price level, searching for order with the required id
             for order in level:
-                if order.oid == oid:
+                if order.id == id:
                     level.remove(order)
 
                 # prune price level if now empty
                 if len(level) == 0:
-                    self._data.pop(price)
-                    self._prices.remove(price)
+                    self.__data.pop(price)
+                    self.__prices.remove(price)
 
                 break
 
@@ -81,25 +81,25 @@ class Side(object):
 
         return n
 
-    def _add_price(self, price):
+    def __add_price(self, price):
         self.prices.append(price)
-        self._sort_prices()
-        self._data[price] = []
+        self.__sort_prices()
+        self.__data[price] = []
 
-    def _sort_prices(self):
-        if self.stype == "BID":
+    def __sort_prices(self):
+        if self.type == "BID":
             self.prices.sort(reverse=True)
-        elif self.stype == "ASK":
+        elif self.type == "ASK":
             self.prices.sort()
 
     def __str__(self):
-        s = self.stype + " side with " + str(self.num_orders()) + " orders "
+        s = self.type + " side with " + str(self.num_orders()) + " orders "
         s += "across " + str(self.depth) + " price levels"
 
         return s
 
     def __repr__(self):
-        s = self.stype + "s\n"
+        s = self.type + "s\n"
 
         for price in self.prices:
             level = self.get(price)
