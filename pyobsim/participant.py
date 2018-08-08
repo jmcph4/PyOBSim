@@ -38,8 +38,7 @@ class Participant(object):
         self.__volume = volume
 
     def __eq__(self, o):
-        return self.id == o.id and self.name == o.name and \
-               self.balance == o.balance and self.volume == o.volume
+        return isinstance(o, Participant) and self.id == o.id
 
     def __hash__(self):
         return self.__id
