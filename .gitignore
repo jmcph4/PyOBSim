@@ -95,3 +95,7 @@ ENV/
 *.log
 
 msg.tmp
+
+.idea
+.idea/*
+
