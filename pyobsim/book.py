@@ -95,68 +95,57 @@ class Book(object):
         else:
             return False
 
-    def _match(self, counter_side, order):
-        if counter_side.stype == "BID":
-            if order.price <= counter_side.best:
-                good_price = True
-            else:
-                good_price = False
-        elif counter_side.stype == "ASK":
-            if order.price >= counter_side.best:
-                good_price = True
-            else:
-                good_price = False
+    def __match(self, counter_side, order):
+        matched = False  # order starts unmatched
 
-        if good_price:
-            if order.qty <= counter_side.volume:
-                # we can match
-                for price in counter_side.prices:
-                    matched = False
+        crossed = False
 
-                    while not matched:
-                        try:
-                            level = counter_side.get(price)
-                        except NoPriceError:
+        # determine if this order will cross the book
+        if order.type == "BID":
+            crossed = order.price >= counter_side.best
+        elif order.type == "ASK":
+            crossed = order.price <= counter_side.best
+
+        if order.qty <= counter_side.volume or \
+                self.__params["PartialExecution"] and counter_side.volume > 0 \
+                and crossed:
+            while not matched and len(counter_side.prices) > 0:
+                for counter_price in counter_side.prices:
+                    level = counter_side.get(counter_price)
+
+                    for counter_order in level:
+                        if order.qty < counter_order.qty:
+                            self.__execute(order)
+                            self.__execute(counter_order, amt=order.qty)
+
+                            # mark order as matched and terminate
+                            matched = True
                             break
+                        elif order.qty == counter_order.qty:
+                            self.__execute(order)
+                            self.__execute(counter_order)
 
-                        for o in level:
-                            if order.qty < o.qty:
-                                self.execute(order)
-                                self.execute(o, amt=order.qty)
-                                matched = True
-                                break
-                            elif order.qty == o.qty:
-                                self.execute(order)
-                                self.execute(o)
-                                matched = True
-                                break
-                            else:
-                                self.execute(order, amt=o.qty)
-                                self.execute(o)
+                            # mark order as matched and terminate
+                            matched = True
+                            break
+                        else: # partial execution
+                            self.__execute(order, amt=counter_order.qty)
+                            self.__execute(counter_order)
 
-                    # if we've matched, break out of price loop
-                    if matched:
+                    if matched: # done, so terminate
                         break
 
-                    # exhausted this price level
-                    if len(level) == 0:
-                        break
-            else:
-                # insufficient volume
-                raise InsufficientVolumeError()
-        else:
-            # price out of range
-            raise PriceOutOfRangeError()
+        return matched
 
-    def _payout(self, side, order, amt=None):
-        if side.stype == "BID":
+    def __payout(self, side, order, amt=None):
+        if side.type == "BID":
             if amt:
                 self.participants[order.owner.id].balance -= order.price * amt
                 self.participants[order.owner.id].volume += amt
             else:
                 self.participants[order.owner.id].balance -= order.price * order.qty
                 self.participants[order.owner.id].volume += order.qty
-        elif side.stype == "ASK":
+        elif side.type == "ASK":
             if amt:
                 self.participants[order.owner.id].balance += order.price * amt
                 self.participants[order.owner.id].volume -= amt
@@ -169,30 +158,38 @@ class Book(object):
             if order.price * order.qty <= \
                     self.participants[order.owner.id].balance \
                     or self.__params["AllowShorting"]:
-                self._match(self.asks, order)
+                matched = self.__match(self.asks, order)
+
+                # order could not be matched at this time
+                if not matched:
+                    self.__bids.put(order)
             else:
                 raise InsufficientFundsError()
         elif order.type == "ASK":
             if order.qty <= self.participants[order.owner.id].volume \
-                    or self.__params["AllowLending"]
-                self._match(self.bids, order)
+                    or self.__params["AllowLending"]:
+                matched = self.__match(self.bids, order)
+
+                # order could not be matched at this time
+                if not matched:
+                    self.__asks.put(order)
             else:
                 raise InsufficientFundsError()
 
-    def execute(self, order, amt=None):
+    def __execute(self, order, amt=None):
         if amt:
             if order.type == "BID":
-                self._payout(self.bids, order, amt)
+                self.__payout(self.bids, order, amt)
                 order.qty -= amt
             elif order.type == "ASK":
-                self._payout(self.asks, order, amt)
+                self.__payout(self.asks, order, amt)
                 order.qty -= amt
         else:
             if order.type == "BID":
-                self._payout(self.bids, order)
+                self.__payout(self.bids, order)
                 self.bids.remove(order.id)
             elif order.type == "ASK":
-                self._payout(self.asks, order)
+                self.__payout(self.asks, order)
                 self.asks.remove(order.id)
 
         self.__LTP = order.price
