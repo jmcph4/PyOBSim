@@ -166,43 +166,16 @@ class Book(object):
 
     def add(self, order):
         if order.type == "BID":
-            if order.price * order.qty <= self.participants[order.owner.id].balance:
-                try:
-                    self._match(self.asks, order)
-                except InsufficientVolumeError:
-                    id = self.volume[0] + self.volume[1] + 1
-                    order.id = id
-
-                    self.bids.put(order)
-
-                    return id
-                except PriceOutOfRangeError:
-                    id = self.volume[0] + self.volume[1] + 1
-                    order.id = id
-                
-                    self.bids.put(order)
-
-                    return id
+            if order.price * order.qty <= \
+                    self.participants[order.owner.id].balance \
+                    or self.__params["AllowShorting"]:
+                self._match(self.asks, order)
             else:
                 raise InsufficientFundsError()
         elif order.type == "ASK":
-            if order.qty <= self.participants[order.owner.id].volume:
-                try:
-                    self._match(self.bids, order)
-                except InsufficientVolumeError:
-                    id = self.volume[0] + self.volume[1] + 1
-                    order.id = id
-
-                    self.asks.put(order)
-
-                    return id
-                except PriceOutOfRangeError:
-                    id = self.volume[0] + self.volume[1] + 1
-                    order.id = id
-                
-                    self.asks.put(order)
-                
-                    return id
+            if order.qty <= self.participants[order.owner.id].volume \
+                    or self.__params["AllowLending"]
+                self._match(self.bids, order)
             else:
                 raise InsufficientFundsError()
 
