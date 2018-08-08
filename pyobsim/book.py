@@ -3,7 +3,8 @@ from copy import deepcopy
 from .order import Order
 from .side import Side
 from .errors import InsufficientFundsError, InsufficientVolumeError, \
-    PriceOutOfRangeError, NoPriceError, ParticipantAlreadyExistsError
+    PriceOutOfRangeError, NoPriceError, ParticipantAlreadyExistsError, \
+    NoSuchParameterError
 
 
 class Book(object):
@@ -13,12 +14,17 @@ class Book(object):
 
         # build participants dictionary from list
         for participant in participants:
-            self.__participants[participant.name] = participant
+            self.__participants[participant.id] = participant
 
         if params is not None:
             self.__params = deepcopy(params)
         else:
             self.__params = {}
+
+            # initialise default parameters
+            self.__params["PartialExecution"] = True
+            self.__params["AllowShorting"] = False
+            self.__params["AllowLending"] = False
 
         self.__bids = Side("BID")
         self.__asks = Side("ASK")
@@ -78,10 +84,10 @@ class Book(object):
         return self.__params[name]
 
     def add_participant(self, participant):
-        if participant.name in self.__participants.keys():
+        if participant.id in self.__participants.keys():
             raise ParticipantAlreadyExistsError()
 
-        self.participants[participant.name] = participant
+        self.participants[participant.id] = participant
 
     def crossed(self):
         if self.bids.best >= self.asks.best:
@@ -100,13 +106,13 @@ class Book(object):
                 good_price = True
             else:
                 good_price = False
-            
+
         if good_price:
             if order.qty <= counter_side.volume:
                 # we can match
                 for price in counter_side.prices:
                     matched = False
-            
+
                     while not matched:
                         try:
                             level = counter_side.get(price)
@@ -145,82 +151,82 @@ class Book(object):
     def _payout(self, side, order, amt=None):
         if side.stype == "BID":
             if amt:
-                self.participants[order.owner].balance -= order.price * amt
-                self.participants[order.owner].volume += amt
+                self.participants[order.owner.id].balance -= order.price * amt
+                self.participants[order.owner.id].volume += amt
             else:
-                self.participants[order.owner].balance -= order.price * order.qty
-                self.participants[order.owner].volume += order.qty
+                self.participants[order.owner.id].balance -= order.price * order.qty
+                self.participants[order.owner.id].volume += order.qty
         elif side.stype == "ASK":
             if amt:
-                self.participants[order.owner].balance += order.price * amt
-                self.participants[order.owner].volume -= amt
+                self.participants[order.owner.id].balance += order.price * amt
+                self.participants[order.owner.id].volume -= amt
             else:
-                self.participants[order.owner].balance += order.price * order.qty
-                self.participants[order.owner].volume -= order.qty
+                self.participants[order.owner.id].balance += order.price * order.qty
+                self.participants[order.owner.id].volume -= order.qty
 
     def add(self, order):
-        if order.otype == "BID":
-            if order.price * order.qty <= self.participants[order.owner].balance:
+        if order.type == "BID":
+            if order.price * order.qty <= self.participants[order.owner.id].balance:
                 try:
                     self._match(self.asks, order)
                 except InsufficientVolumeError:
-                    oid = self.volume[0] + self.volume[1] + 1
-                    order.oid = oid
-                
+                    id = self.volume[0] + self.volume[1] + 1
+                    order.id = id
+
                     self.bids.put(order)
 
-                    return oid
+                    return id
                 except PriceOutOfRangeError:
-                    oid = self.volume[0] + self.volume[1] + 1
-                    order.oid = oid
+                    id = self.volume[0] + self.volume[1] + 1
+                    order.id = id
                 
                     self.bids.put(order)
 
-                    return oid
+                    return id
             else:
                 raise InsufficientFundsError()
-        elif order.otype == "ASK":
-            if order.qty <= self.participants[order.owner].volume:
+        elif order.type == "ASK":
+            if order.qty <= self.participants[order.owner.id].volume:
                 try:
                     self._match(self.bids, order)
                 except InsufficientVolumeError:
-                    oid = self.volume[0] + self.volume[1] + 1
-                    order.oid = oid
-                
+                    id = self.volume[0] + self.volume[1] + 1
+                    order.id = id
+
                     self.asks.put(order)
-                
-                    return oid
+
+                    return id
                 except PriceOutOfRangeError:
-                    oid = self.volume[0] + self.volume[1] + 1
-                    order.oid = oid
+                    id = self.volume[0] + self.volume[1] + 1
+                    order.id = id
                 
                     self.asks.put(order)
                 
-                    return oid
+                    return id
             else:
                 raise InsufficientFundsError()
 
     def execute(self, order, amt=None):
         if amt:
-            if order.otype == "BID":
+            if order.type == "BID":
                 self._payout(self.bids, order, amt)
                 order.qty -= amt
-            elif order.otype == "ASK":
+            elif order.type == "ASK":
                 self._payout(self.asks, order, amt)
                 order.qty -= amt
         else:
-            if order.otype == "BID":
+            if order.type == "BID":
                 self._payout(self.bids, order)
-                self.bids.remove(order.oid)
-            elif order.otype == "ASK":
+                self.bids.remove(order.id)
+            elif order.type == "ASK":
                 self._payout(self.asks, order)
-                self.asks.remove(order.oid)
+                self.asks.remove(order.id)
 
         self.__LTP = order.price
 
-    def cancel(self, oid):
-        self.bids.remove(oid)
-        self.asks.remove(oid)
+    def cancel(self, id):
+        self.bids.remove(id)
+        self.asks.remove(id)
 
     def __str__(self):
         return "{0} with depth ({1}, {2})".format(self.name,
