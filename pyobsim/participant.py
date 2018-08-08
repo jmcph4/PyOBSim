@@ -1,6 +1,6 @@
 class Participant(object):
     def __init__(self, id, name, balance, volume):
-        self._id = id
+        self.__id = id
         self.__name = str(name)
 
         if balance < 0 or volume < 0:
