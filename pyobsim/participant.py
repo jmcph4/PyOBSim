@@ -37,7 +37,15 @@ class Participant(object):
     def volume(self, volume):
         self.__volume = volume
 
+    def __eq__(self, o):
+        return self.id == o.id and self.name == o.name and \
+               self.balance == o.balance and self.volume == o.volume
+
+    def __hash__(self):
+        return self.__id
+
     def __repr__(self):
-        s = self.name + ": $" + str(self.balance) + " with " + str(self.volume) + " units" 
+        s = self.name + ": $" + str(self.balance) + " with " + \
+            str(self.volume) + " units"
 
         return s
