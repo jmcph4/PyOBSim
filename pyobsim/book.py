@@ -6,37 +6,37 @@ from .errors import InsufficientFundsError, InsufficientVolumeError, PriceOutOfR
 
 class Book(object):
     def __init__(self, name, participants):
-        self._name = str(name)
-        self._participants = {}
+        self.__name = str(name)
+        self.__participants = {}
 
         # build participants dictionary from list
         for participant in participants:
-            self._participants[participant.name] = participant
+            self.__participants[participant.name] = participant
 
-        self._bids = Side("BID")
-        self._asks = Side("ASK")
+        self.__bids = Side("BID")
+        self.__asks = Side("ASK")
 
-        self._LTP = 0
+        self.__LTP = 0
 
     @property
     def name(self):
-        return self._name
+        return self.__name
 
     @name.setter
     def name(self, name):
-        self._name = str(name)
+        self.__name = str(name)
 
     @property
     def participants(self):
-        return deepcopy(self._participants)
+        return deepcopy(self.__participants)
 
     @property
     def bids(self):
-        return self._bids
+        return self.__bids
 
     @property
     def asks(self):
-        return self._asks
+        return self.__asks
 
     @property
     def top(self):
@@ -56,10 +56,10 @@ class Book(object):
 
     @property
     def LTP(self):
-        return self._LTP
+        return self.__LTP
 
     def add_participant(self, participant):
-        if participant.name in self._participants.keys():
+        if participant.name in self.__participants.keys():
             raise ParticipantAlreadyExistsError()
 
         self.participants[participant.name] = participant
@@ -197,7 +197,7 @@ class Book(object):
                 self._payout(self.asks, order)
                 self.asks.remove(order.oid)
 
-        self._LTP = order.price
+        self.__LTP = order.price
 
     def cancel(self, oid):
         self.bids.remove(oid)
