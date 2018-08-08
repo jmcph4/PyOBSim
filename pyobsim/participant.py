@@ -1,5 +1,6 @@
 class Participant(object):
-    def __init__(self, name, balance, volume):
+    def __init__(self, id, name, balance, volume):
+        self._id = id
         self.__name = str(name)
 
         if balance < 0 or volume < 0:
@@ -7,6 +8,10 @@ class Participant(object):
         
         self.__balance = float(balance)
         self.__volume = int(volume)
+
+    @property
+    def id(self):
+        return self.__id
 
     @property
     def name(self):
