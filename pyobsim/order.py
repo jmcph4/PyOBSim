@@ -14,62 +14,62 @@ class Order(object):
         if int(qty) <= 0:
             raise ValueError()
         
-        self._oid = int(oid)
-        self._owner = str(owner)
-        self._ticker = str(ticker)
-        self._otype = str(otype)
-        self._price = round(float(price), 2)
-        self._qty = int(qty)
+        self.__oid = int(oid)
+        self.__owner = owner
+        self.__ticker = str(ticker)
+        self.__otype = str(otype)
+        self.__price = round(float(price), 2)
+        self.__qty = int(qty)
 
     @property
     def oid(self):
-        return self._oid
+        return self.__oid
 
     @oid.setter
     def oid(self, oid):
-        self._oid = oid
+        self.__oid = oid
 
     @property
     def owner(self):
-        return self._owner
+        return self.__owner
 
     @owner.setter
     def owner(self, owner):
-        self._owner = str(owner)
+        self.__owner = str(owner)
 
     @property
     def ticker(self):
-        return self._ticker
+        return self.__ticker
 
     @ticker.setter
     def ticker(self, ticker):
-        self._ticker = str(ticker)
+        self.__ticker = str(ticker)
 
     @property
     def otype(self):
-        return self._otype
+        return self.__otype
 
     @property
     def price(self):
-        return round(self._price, 2)
+        return round(self.__price, 2)
 
     @price.setter
     def price(self, price):
         if round(float(price)) <= 0:
             raise ValueError()
 
-        self._price = round(float(price))
+        self.__price = round(float(price))
 
     @property
     def qty(self):
-        return self._qty
+        return self.__qty
 
     @qty.setter
     def qty(self, qty):
         if int(qty) <= 0:
             raise ValueError()
 
-        self._qty = int(qty)
+        self.__qty = int(qty)
 
     def __str__(self):
         return "{0}: {1} for {2} @ ${3} by {4}".format(self.ticker, self.otype,
