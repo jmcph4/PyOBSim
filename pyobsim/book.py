@@ -87,7 +87,7 @@ class Book(object):
         if participant.id in self.__participants.keys():
             raise ParticipantAlreadyExistsError()
 
-        self.participants[participant.id] = participant
+        self.__participants[participant.id] = participant
 
     def crossed(self):
         if self.bids.best >= self.asks.best:
@@ -140,24 +140,24 @@ class Book(object):
     def __payout(self, side, order, amt=None):
         if side.type == "BID":
             if amt:
-                self.participants[order.owner.id].balance -= order.price * amt
-                self.participants[order.owner.id].volume += amt
+                self.__participants[order.owner.id].balance -= order.price * amt
+                self.__participants[order.owner.id].volume += amt
             else:
-                self.participants[order.owner.id].balance -= order.price * order.qty
-                self.participants[order.owner.id].volume += order.qty
+                self.__participants[order.owner.id].balance -= order.price * order.qty
+                self.__participants[order.owner.id].volume += order.qty
         elif side.type == "ASK":
             if amt:
-                self.participants[order.owner.id].balance += order.price * amt
-                self.participants[order.owner.id].volume -= amt
+                self.__participants[order.owner.id].balance += order.price * amt
+                self.__participants[order.owner.id].volume -= amt
             else:
-                self.participants[order.owner.id].balance += order.price * order.qty
-                self.participants[order.owner.id].volume -= order.qty
+                self.__participants[order.owner.id].balance += order.price * order.qty
+                self.__participants[order.owner.id].volume -= order.qty
 
     def add(self, order):
         if order.type == "BID":
             if order.price * order.qty <= \
-                    self.participants[order.owner.id].balance \
-                    or self.__params["AllowShorting"]:
+                    self.__participants[order.owner.id].balance \
+                    or self.__params["AllowLending"]:
                 matched = self.__match(self.asks, order)
 
                 # order could not be matched at this time
@@ -166,8 +166,8 @@ class Book(object):
             else:
                 raise InsufficientFundsError()
         elif order.type == "ASK":
-            if order.qty <= self.participants[order.owner.id].volume \
-                    or self.__params["AllowLending"]:
+            if order.qty <= self.__participants[order.owner.id].volume \
+                    or self.__params["AllowShorting"]:
                 matched = self.__match(self.bids, order)
 
                 # order could not be matched at this time
@@ -179,24 +179,24 @@ class Book(object):
     def __execute(self, order, amt=None):
         if amt:
             if order.type == "BID":
-                self.__payout(self.bids, order, amt)
+                self.__payout(self.__bids, order, amt)
                 order.qty -= amt
             elif order.type == "ASK":
-                self.__payout(self.asks, order, amt)
+                self.__payout(self.__asks, order, amt)
                 order.qty -= amt
         else:
             if order.type == "BID":
-                self.__payout(self.bids, order)
-                self.bids.remove(order.id)
+                self.__payout(self.__bids, order)
+                self.__bids.remove(order.id)
             elif order.type == "ASK":
-                self.__payout(self.asks, order)
-                self.asks.remove(order.id)
+                self.__payout(self.__asks, order)
+                self.__asks.remove(order.id)
 
         self.__LTP = order.price
 
     def cancel(self, id):
-        self.bids.remove(id)
-        self.asks.remove(id)
+        self.__bids.remove(id)
+        self.__asks.remove(id)
 
     def __str__(self):
         return "{0} with depth ({1}, {2})".format(self.name,
