@@ -106,9 +106,9 @@ class Book(object):
         elif order.type == "ASK":
             crossed = order.price <= counter_side.best
 
-        if order.qty <= counter_side.volume or \
-                self.__params["PartialExecution"] and counter_side.volume > 0 \
-                and crossed:
+        if counter_side.volume > 0 and crossed and \
+                (order.qty <= counter_side.volume or \
+                 self.__params["PartialExecution"]) :
             while not matched and len(counter_side.prices) > 0:
                 for counter_price in counter_side.prices:
                     level = counter_side.get(counter_price)
