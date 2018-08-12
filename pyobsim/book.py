@@ -114,43 +114,47 @@ class Book(object):
                     level = counter_side.get(counter_price)
 
                     for counter_order in level:
+                        actual_qty = None
+                        actual_counter_qty = None
+
                         if order.qty < counter_order.qty:
-                            self.__execute(order)
-                            self.__execute(counter_order, amt=order.qty)
+                            actual_counter_qty = order.qty
 
                             # mark order as matched and terminate
                             matched = True
-                            break
                         elif order.qty == counter_order.qty:
-                            self.__execute(order)
-                            self.__execute(counter_order)
-
                             # mark order as matched and terminate
                             matched = True
-                            break
                         else: # partial execution
-                            self.__execute(order, amt=counter_order.qty)
-                            self.__execute(counter_order)
+                            actual_price = counter_order.qty
+
+                        self.__execute(order, price=counter_order.price, amt=actual_qty)
+                        self.__execute(counter_order, price=counter_order.price, amt=actual_counter_qty)
 
                     if matched: # done, so terminate
                         break
 
         return matched
 
-    def __payout(self, side, order, amt=None):
+    def __payout(self, side, order, price=None, amt=None):
+        if not price:
+            actual_price = order.price
+        else:
+            actual_price = price
+
         if side.type == "BID":
             if amt:
-                self.__participants[order.owner.id].balance -= order.price * amt
+                self.__participants[order.owner.id].balance -= actual_price * amt
                 self.__participants[order.owner.id].volume += amt
             else:
-                self.__participants[order.owner.id].balance -= order.price * order.qty
+                self.__participants[order.owner.id].balance -= actual_price * order.qty
                 self.__participants[order.owner.id].volume += order.qty
         elif side.type == "ASK":
             if amt:
-                self.__participants[order.owner.id].balance += order.price * amt
+                self.__participants[order.owner.id].balance += actual_price * amt
                 self.__participants[order.owner.id].volume -= amt
             else:
-                self.__participants[order.owner.id].balance += order.price * order.qty
+                self.__participants[order.owner.id].balance += actual_price * order.qty
                 self.__participants[order.owner.id].volume -= order.qty
 
     def add(self, order):
@@ -176,20 +180,20 @@ class Book(object):
             else:
                 raise InsufficientFundsError()
 
-    def __execute(self, order, amt=None):
+    def __execute(self, order, price=None, amt=None):
         if amt:
             if order.type == "BID":
-                self.__payout(self.__bids, order, amt)
+                self.__payout(self.__bids, order, price, amt)
                 order.qty -= amt
             elif order.type == "ASK":
-                self.__payout(self.__asks, order, amt)
+                self.__payout(self.__asks, order, price, amt)
                 order.qty -= amt
         else:
             if order.type == "BID":
-                self.__payout(self.__bids, order)
+                self.__payout(self.__bids, order, price, amt)
                 self.__bids.remove(order.id)
             elif order.type == "ASK":
-                self.__payout(self.__asks, order)
+                self.__payout(self.__asks, order, price, amt)
                 self.__asks.remove(order.id)
 
         self.__LTP = order.price
