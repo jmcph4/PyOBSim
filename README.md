@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/jmcph4/PyOBSim.svg?branch=master)](https://travis-ci.org/jmcph4/PyOBSim)
+
 # PyOBSim - the Python Order Book Simulator #
 ---
 
