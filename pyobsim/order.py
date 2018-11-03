@@ -19,6 +19,14 @@ class Order(object):
         self.__price = round(float(price), 2)
         self.__qty = int(qty)
 
+    def __eq__(self, o):
+        if isinstance(o, Order):
+            return self.id == o.id and self.owner == o.owner and \
+                    self.ticker == o.ticker and self.type == o.type and \
+                    self.price == o.price and self.qty == o.qty
+        else:
+            return False
+
     @property
     def id(self):
         return self.__id
