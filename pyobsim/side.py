@@ -1,5 +1,5 @@
-from .order import Order
 from .errors import NoPriceError
+
 
 class Side(object):
     def __init__(self, type):
@@ -33,7 +33,7 @@ class Side(object):
     @property
     def volume(self):
         vol = 0
-        
+
         for price in self.prices:
             level = self.get(price)
 
@@ -41,7 +41,7 @@ class Side(object):
                 vol += order.qty
 
         return vol
-    
+
     def get(self, price):
         if price not in self.prices:
             raise NoPriceError()
@@ -73,7 +73,7 @@ class Side(object):
 
     def num_orders(self):
         n = 0
-        
+
         for price in self.prices:
             level = self.get(price)
 
