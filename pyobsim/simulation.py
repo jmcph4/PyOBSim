@@ -3,9 +3,8 @@ import csv
 from copy import deepcopy
 
 from .order import Order
-from .side import Side
 from .book import Book
-from .participant import Participant
+
 
 class Simulation(object):
     def __init__(self, name, orders, participants):
@@ -64,25 +63,27 @@ class Simulation(object):
 
             for row in csv_orders:
                 if len(row) == 6:
-                    self.add_order(Order(row[0], row[1], row[2], row[3], row[4], row[5]))
+                    self.add_order(Order(
+                        row[0], row[1], row[2], row[3], row[4], row[5]))
 
         for o in self.orders:
             self.add_book(Book(o.ticker, self.participants))
 
     def run(self, steps=None):
+        i = 0
         if steps:
-            for order in self.orders:
-                if i == steps:
-                    break
+            for i in range(steps):
+                order = self.orders[i]
                 self.books[order.ticker].add(order)
 
-            return i
+            return steps
         else:
             for order in self.orders:
                 self.books[order.ticker].add(order)
 
-            print("{0} participants traded {1} orders".format(self.num_participants,
-                                                              self.num_orders))
+            print("{0} participants traded {1} orders".format(
+                self.num_participants,
+                self.num_orders))
 
             return self.num_orders
 
@@ -92,7 +93,7 @@ class Simulation(object):
 
         for participant in self._participants:
             s += str(participant) + "\n"
-            
+
         s += "---\n"
         s += "Market as at present\n"
 
@@ -101,4 +102,3 @@ class Simulation(object):
             s += "\n"
 
         return s
-        
