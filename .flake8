@@ -1,0 +1,21 @@
+[flake8]
+
+# exclude directives
+exclude =
+    .git,
+    __pycache__,
+    .idea,
+    *.yml,
+    *.tmp,
+    *.secret,
+    .tmp,
+    tests,        # waiting for per-file ignore directives
+
+# ignore directives
+ignore =
+    D203, # conflicts (in general)
+    W504, # conflicts with long logical expressions
+    W391, # personal style preference
+
+max-line-length = 80
+
