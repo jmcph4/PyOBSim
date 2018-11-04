@@ -1,9 +1,7 @@
 from copy import deepcopy
 
-from .order import Order
 from .side import Side
-from .errors import InsufficientFundsError, InsufficientVolumeError, \
-    PriceOutOfRangeError, NoPriceError, ParticipantAlreadyExistsError, \
+from .errors import InsufficientFundsError, ParticipantAlreadyExistsError, \
     NoSuchParameterError
 
 
@@ -107,8 +105,8 @@ class Book(object):
             crossed = order.price <= counter_side.best
 
         if counter_side.volume > 0 and crossed and \
-                (order.qty <= counter_side.volume or \
-                 self.__params["PartialExecution"]) :
+                (order.qty <= counter_side.volume or
+                 self.__params["PartialExecution"]):
             while not matched and len(counter_side.prices) > 0:
                 for counter_price in counter_side.prices:
                     level = counter_side.get(counter_price)
@@ -125,13 +123,15 @@ class Book(object):
                         elif order.qty == counter_order.qty:
                             # mark order as matched and terminate
                             matched = True
-                        else: # partial execution
-                            actual_price = counter_order.qty
+                        else:  # partial execution
+                            actual_qty = counter_order.qty
 
-                        self.__execute(order, price=counter_order.price, amt=actual_qty)
-                        self.__execute(counter_order, price=counter_order.price, amt=actual_counter_qty)
+                        self.__execute(order, price=counter_order.price,
+                                       amt=actual_qty)
+                        self.__execute(counter_order, price=counter_order.price,
+                                       amt=actual_counter_qty)
 
-                    if matched: # done, so terminate
+                    if matched:  # done, so terminate
                         break
 
         return matched
@@ -144,17 +144,21 @@ class Book(object):
 
         if side.type == "BID":
             if amt:
-                self.__participants[order.owner.id].balance -= actual_price * amt
+                self.__participants[order.owner.id].balance -= actual_price * \
+                    amt
                 self.__participants[order.owner.id].volume += amt
             else:
-                self.__participants[order.owner.id].balance -= actual_price * order.qty
+                self.__participants[order.owner.id].balance -= actual_price * \
+                    order.qty
                 self.__participants[order.owner.id].volume += order.qty
         elif side.type == "ASK":
             if amt:
-                self.__participants[order.owner.id].balance += actual_price * amt
+                self.__participants[order.owner.id].balance += actual_price * \
+                    amt
                 self.__participants[order.owner.id].volume -= amt
             else:
-                self.__participants[order.owner.id].balance += actual_price * order.qty
+                self.__participants[order.owner.id].balance += actual_price * \
+                    order.qty
                 self.__participants[order.owner.id].volume -= order.qty
 
     def add(self, order):
@@ -203,9 +207,8 @@ class Book(object):
         self.__asks.remove(id)
 
     def __str__(self):
-        return "{0} with depth ({1}, {2})".format(self.name,
-                                                       self.depth[0],
-                                                       self.depth[1])
+        return "{0} with depth ({1}, {2})".format(
+            self.name, self.depth[0], self.depth[1])
 
     def __repr__(self):
         s = "Book for " + self.name + "\n"
