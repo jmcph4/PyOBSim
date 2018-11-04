@@ -11,7 +11,7 @@ class Order(object):
 
         if int(qty) <= 0:
             raise ValueError()
-        
+
         self.__id = id
         self.__owner = owner
         self.__ticker = str(ticker)
@@ -22,8 +22,8 @@ class Order(object):
     def __eq__(self, o):
         if isinstance(o, Order):
             return self.id == o.id and self.owner == o.owner and \
-                    self.ticker == o.ticker and self.type == o.type and \
-                    self.price == o.price and self.qty == o.qty
+                self.ticker == o.ticker and self.type == o.type and \
+                self.price == o.price and self.qty == o.qty
         else:
             return False
 
