@@ -5,7 +5,7 @@ class Participant(object):
 
         if balance < 0 or volume < 0:
             raise ValueError()
-        
+
         self.__balance = float(balance)
         self.__volume = int(volume)
 
