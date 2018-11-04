@@ -34,3 +34,15 @@ class TestOrder(unittest.TestCase):
         with self.assertRaises(ValueError):
             actual_order = Order(0, self.blank_participant, "", "", 0.01, -1)
 
+    def test___eq___equal(self):
+        order_a = Order(1, self.blank_participant, "WOW", "BID", 0.04, 250)
+        order_b = Order(1, self.blank_participant, "WOW", "BID", 0.04, 250)
+
+        self.assertEqual(order_a, order_b)
+
+    def test___eq___not_equal(self):
+        order_a = Order(1, self.blank_participant, "WOW", "BID", 1.23, 100)
+        order_b = Order(2, self.blank_participant, "MSFT", "ASK", 5.44, 20)
+
+        self.assertNotEqual(order_a, order_b)
+
