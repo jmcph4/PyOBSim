@@ -39,7 +39,7 @@ class Book(object):
 
     @property
     def participants(self):
-        return deepcopy(self.__participants)
+        return list(self.__participants.values())
 
     @property
     def bids(self):
