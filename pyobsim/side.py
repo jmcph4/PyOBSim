@@ -81,6 +81,19 @@ class Side(object):
 
         return n
 
+    def __eq__(self, o):
+        if isinstance(o, Side):
+            if self.type == o.type and self.prices == o.prices:
+                for price in self.prices:
+                    if self.get(price) != o.get(price):
+                        return False
+
+                return True
+            else:
+                return False
+        else:
+            return False
+
     def __add_price(self, price):
         self.prices.append(price)
         self.__sort_prices()
