@@ -88,7 +88,8 @@ class Book(object):
         self.__participants[participant.id] = participant
 
     def crossed(self):
-        if self.bids.best >= self.asks.best:
+        if self.bids.best > 0 and self.asks.best > 0 and \
+                self.bids.best >= self.asks.best:
             return True
         else:
             return False
