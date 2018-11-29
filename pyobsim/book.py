@@ -69,6 +69,19 @@ class Book(object):
     def LTP(self):
         return self.__LTP
 
+    def get_order(self, order_id):
+        # check bid side
+        for order in self.__bids:
+            if order.id == order_id:
+                return order
+
+        # check ask side
+        for order in self.__asks:
+            if order.id == order_id:
+                return order
+
+        raise NoSuchOrderError()
+
     def set_param(self, name, value):
         if name not in self.__params.keys():
             raise NoSuchParameterError()
