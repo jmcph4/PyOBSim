@@ -40,6 +40,7 @@ class Side(object):
             for order in level:
                 vol += order.qty
 
+
         return vol
 
     def get(self, price):
@@ -93,6 +94,14 @@ class Side(object):
                 return False
         else:
             return False
+
+    def __iter__(self):
+        order_list = []
+
+        for level in self.prices:
+            order_list += self.__data[level]
+
+        return iter(order_list)
 
     def __add_price(self, price):
         self.prices.append(price)
