@@ -20,3 +20,7 @@ class ParticipantAlreadyExistsError(Exception):
 
 class NoSuchParameterError(Exception):
     pass
+
+class NoSuchOrderError(Exception):
+    pass
+
