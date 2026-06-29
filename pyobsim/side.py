@@ -40,7 +40,6 @@ class Side(object):
             for order in level:
                 vol += order.qty
 
-
         return vol
 
     def get(self, price):
