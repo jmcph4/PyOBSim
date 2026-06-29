@@ -1,0 +1,47 @@
+[project]
+name = "pyobsim"
+version = "0.1.0"
+description = "A Python order book simulator for testing trading algorithms"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Jack McPherson", email = "jack@jmcph4.dev" }]
+keywords = ["order book", "trading", "simulation", "finance", "markets"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/jmcph4/PyOBSim"
+Repository = "https://github.com/jmcph4/PyOBSim"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pyobsim"]
+
+[dependency-groups]
+dev = ["ruff>=0.6"]
+
+[tool.ruff]
+line-length = 80
+# tests excluded while waiting for per-file ignore directives
+extend-exclude = ["tests"]
+
+[tool.ruff.lint]
+# E/W: pycodestyle, F: pyflakes (the checks flake8 ran by default)
+select = ["E", "W", "F"]
+# W391 - trailing blank line at end of file (personal style preference)
+ignore = ["W391"]

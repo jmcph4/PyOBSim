@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/jmcph4/PyOBSim.svg?branch=master)](https://travis-ci.org/jmcph4/PyOBSim)
-
 # PyOBSim - the Python Order Book Simulator #
 ---
 
@@ -47,3 +45,18 @@ We get:
     --------------------------------------------------------------------------------
     			     Price		Quantity
     			     Bid    
+
+## Development ##
+---
+
+PyOBSim uses [uv](https://docs.astral.sh/uv/) for dependency management,
+packaging, and running tasks. With `uv` installed, set up the project with:
+
+    uv sync
+
+This creates a virtual environment and installs PyOBSim along with its
+development dependencies (`ruff`). Common tasks:
+
+    uv run python -m unittest tests/test_*.py   # run the test suite
+    uv run ruff check                           # lint the codebase
+    uv build                                    # build the sdist and wheel

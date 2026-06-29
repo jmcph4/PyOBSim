@@ -2,7 +2,7 @@ from copy import deepcopy
 
 from .side import Side
 from .errors import InsufficientFundsError, ParticipantAlreadyExistsError, \
-    NoSuchParameterError
+    NoSuchParameterError, NoSuchOrderError
 
 
 class Book(object):
